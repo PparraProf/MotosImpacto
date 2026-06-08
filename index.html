@@ -63,11 +63,12 @@
 	
 	</nav>
   <main>
-	<a-scene mindar-image="imageTargetSrc:MindAR/Mototarget.mind; maxTrack: 2; filterMinCF: 0.0005; filterBeta: 0.001;" 
-  color-space="sRGB" 
-  renderer="colorManagement: true, physicallyCorrectLights, antialias: true, highRefreshRate: true" 
-  vr-mode-ui="enabled: false" 
-  device-orientation-permission-ui="enabled: false">
+<a-scene mindar-image="imageTargetSrc: MindAR/Mototarget.mind; maxTrack: 2; filterMinCF: 0.0005; filterBeta: 0.001;" 
+         forzar-resolucion
+         color-space="sRGB" 
+         renderer="colorManagement: true, physicallyCorrectLights, antialias: true, highRefreshRate: true" 
+         vr-mode-ui="enabled: false" 
+         device-orientation-permission-ui="enabled: false">
       <a-assets>
         <a-asset-item id="moto1" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/band-example/bear/scene.gltf"></a-asset-item>
         <a-asset-item id="moto2" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/band-example/raccoon/scene.gltf"></a-asset-item>
@@ -89,6 +90,26 @@
 </main>
   <footer></footer>
 </div>
-
+<script>
+  AFRAME.registerComponent('forzar-resolucion', {
+    init: function () {
+      this.el.addEventListener('componentinitialized', (evt) => {
+        if (evt.detail.name === 'mindar-image') {
+          // Accedemos al controlador interno del sistema de MindAR
+          const mindarSystem = this.el.systems['mindar-image-system'];
+          
+          // Modificamos las restricciones antes de que el motor pida la cámara
+          if (mindarSystem) {
+            mindarSystem.videoConstraints = {
+              facingMode: "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            };
+          }
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>
