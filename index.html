@@ -62,6 +62,23 @@
 </main>
   <footer></footer>
 </div>
-
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Interceptamos la función getUserMedia antes de que MindAR la invoque
+    const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    
+    navigator.mediaDevices.getUserMedia = (constraints) => {
+      if (constraints.video) {
+        // Forzamos resoluciones ideales más altas (Full HD si está disponible, si no, escalará hacia abajo)
+        constraints.video = {
+          facingMode: "environment",
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 }
+        };
+      }
+      return originalGetUserMedia(constraints);
+    };
+  });
+</script>
 </body>
 </html>
