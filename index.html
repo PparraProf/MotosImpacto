@@ -7,7 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@100..700&family=Bitcount+Prop+Double+Ink:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-<!--The following script tag downloads a font from the Adobe Edge Web Fonts server for use within the web page. We recommend that you do not modify it.--><script>var __adobewebfontsappname__="dreamweaver"</script><script src="http://use.edgefonts.net/actor:n4:default.js" type="text/javascript"></script>
+<!--The following script tag downloads a font from the Adobe Edge Web Fonts server for use within the web page. We recommend that you do not modify it.-->
+<script> var __adobewebfontsappname__="dreamweaver"</script><script src="https://use.edgefonts.net/actor:n4:default.js" type="text/javascript"></script>
 
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
@@ -16,18 +17,26 @@
 <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
 
 <script>
+  // Interceptamos el acceso a la cámara nativa del móvil
   const originalGetUserMedia = navigator.mediaDevices?.getUserMedia ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) : null;
   
   if (originalGetUserMedia) {
     navigator.mediaDevices.getUserMedia = async (constraints) => {
       if (constraints && constraints.video) {
+        // Configuramos rangos flexibles para que el hardware del móvil no rechace la petición
         constraints.video = {
-          facingMode: "environment",
-          width: { ideal: 1920, max: 1920 },
-          height: { ideal: 1080, max: 1080 }
+          facingMode: "environment", // Fuerza el uso de la cámara trasera
+          width: { min: 640, ideal: 1920 },  // Si no soporta 1080p, baja a 720p o 480p automáticamente sin romperse
+          height: { min: 480, ideal: 1080 }
         };
       }
-      return originalGetUserMedia(constraints);
+      try {
+        return await originalGetUserMedia(constraints);
+      } catch (error) {
+        console.warn("Error al solicitar resolución ideal, aplicando bypass de emergencia:", error);
+        // Si el móvil es muy estricto con los permisos, este bypass abre la cámara con la configuración nativa por defecto
+        return originalGetUserMedia({ video: { facingMode: "environment" } });
+      }
     };
   }
 </script>
