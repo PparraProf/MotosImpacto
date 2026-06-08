@@ -13,6 +13,24 @@
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image.aframe.js"></script>
+<script>
+  // Interceptamos de forma global el acceso a la cámara antes de que inicie MindAR
+  const originalGetUserMedia = navigator.mediaDevices?.getUserMedia ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) : null;
+  
+  if (originalGetUserMedia) {
+    navigator.mediaDevices.getUserMedia = async (constraints) => {
+      if (constraints && constraints.video) {
+        // Reemplazamos la configuración por defecto de baja resolución por una de alta fidelidad
+        constraints.video = {
+          facingMode: "environment", // Fuerza la cámara trasera
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 }
+        };
+      }
+      return originalGetUserMedia(constraints);
+    };
+  }
+</script>
 </head>
 
 <body>
@@ -38,7 +56,7 @@
   <main>
 	<a-scene mindar-image="imageTargetSrc:MindAR/Mototarget.mind; maxTrack: 2; filterMinCF: 0.0005; filterBeta: 0.001;" 
   color-space="sRGB" 
-  renderer="colorManagement: true, physicallyCorrectLights" 
+  renderer="colorManagement: true, physicallyCorrectLights, antialias: true, highRefreshRate: true" 
   vr-mode-ui="enabled: false" 
   device-orientation-permission-ui="enabled: false">
       <a-assets>
@@ -62,23 +80,6 @@
 </main>
   <footer></footer>
 </div>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Interceptamos la función getUserMedia antes de que MindAR la invoque
-    const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-    
-    navigator.mediaDevices.getUserMedia = (constraints) => {
-      if (constraints.video) {
-        // Forzamos resoluciones ideales más altas (Full HD si está disponible, si no, escalará hacia abajo)
-        constraints.video = {
-          facingMode: "environment",
-          width: { ideal: 1920, max: 1920 },
-          height: { ideal: 1080, max: 1080 }
-        };
-      }
-      return originalGetUserMedia(constraints);
-    };
-  });
-</script>
+
 </body>
 </html>
